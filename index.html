@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>牛津树绘本 - Oxford Reading Tree</title>
+  <meta name="description" content="专为儿童启蒙打造的牛津树英语绘本阅读App，支持级别/名字/排序搜索与纯英文整本朗读">
+  <meta name="theme-color" content="#FF7043">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css?v=1789704236091">
+</head>
+<body>
+  <!-- 移动端专属门禁拦截屏 (当检测到 PC 电脑端访问时激活) -->
+  <div class="pc-blocked-overlay" id="pc-blocked-view" style="display: none;">
+    <div class="pc-blocked-card">
+      <div class="pc-blocked-icon">📱</div>
+      <h2 class="pc-blocked-title">请使用手机或平板访问</h2>
+      <p class="pc-blocked-desc">
+        为保证最佳的儿童触控指读与纯英伴读体验，本系统专为移动设备（iPhone / Android / iPad / 平板电脑）定制，暂不支持 PC 电脑端浏览。
+      </p>
+      <div class="pc-blocked-qr-container">
+        <div class="pc-blocked-qr" id="pc-blocked-qr">
+          <img id="pc-blocked-qr-img" src="" alt="手机扫码立即打开">
+        </div>
+        <div class="pc-blocked-qr-hint">📷 微信 / 手机相机扫码立即打开</div>
+      </div>
+      <div class="pc-blocked-badge">🌳 牛津树专属移动端启蒙伴读系统</div>
+    </div>
+  </div>
+
+  <!-- 专属登录视图 (仅允许专属账号登录，严禁注册) -->
+  <div class="view-login" id="view-login" style="display: none;">
+    <div class="login-card">
+      <div class="login-brand">
+        <span class="login-logo">🌳</span>
+        <h1 class="login-title">Oxford Tree</h1>
+        <p class="login-subtitle">牛津树专属绘本乐园</p>
+      </div>
+
+      <div class="login-notice">
+        🔒 <strong>私人专属学习库</strong>：本应用仅供内部授权使用，严禁外人注册。
+      </div>
+
+      <form class="login-form" id="form-login" onsubmit="return false;">
+        <div class="form-item">
+          <label for="login-username">登录邮箱</label>
+          <div class="input-with-icon">
+            <span class="input-icon">👤</span>
+            <input type="email" id="login-username" placeholder="请输入授权邮箱" autocomplete="username">
+          </div>
+        </div>
+
+        <div class="form-item">
+          <label for="login-password">登录密码</label>
+          <div class="input-with-icon">
+            <span class="input-icon">🔑</span>
+            <input type="password" id="login-password" placeholder="请输入访问密码" autocomplete="current-password">
+          </div>
+        </div>
+
+        <div class="login-error-tip" id="login-error-tip" style="display: none;"></div>
+
+        <button type="submit" class="btn-login-submit" id="btn-login-submit">
+          <span>登录进入绘本乐园 ›</span>
+        </button>
+
+        <div class="login-auth-hint">
+          <div>🔒 <strong>安全私有系统</strong>：仅限授权账号与密码登录访问</div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 顶栏应用 Header -->
+  <header class="app-header" id="app-header">
+    <div class="header-container">
+      <div class="header-left-area">
+        <button class="btn-header-back" id="header-btn-back" style="display: none;" title="返回首页书库">
+          <span class="back-arrow">‹</span> <span>返回首页</span>
+        </button>
+        <div class="brand-area" id="btn-go-home" title="返回书库首页">
+          <span class="brand-logo">🌳</span>
+          <div class="brand-text">
+            <span class="brand-en">Oxford Tree</span>
+            <span class="brand-cn">牛津树绘本</span>
+          </div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <!-- 后台播放微型胶囊指示条 (在首页书库或我的页面且后台正在朗读时显示) -->
+        <div class="header-audio-pill" id="header-audio-pill" style="display: none;" title="点击返回正在朗读的绘本">
+          <span class="pill-wave-icon">🔊</span>
+          <span class="pill-text" id="pill-book-title">正在朗读...</span>
+          <button type="button" class="btn-pill-stop" id="btn-pill-stop" title="停止朗读">⏹</button>
+        </div>
+        <span class="tag-level" id="header-level-tag">Level 1 (18本)</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主内容容器 -->
+  <main class="main-content">
+
+    <!-- 视图 1：书库选书列表页 -->
+    <section class="view-section" id="view-library">
+      <!-- 搜索与筛选控制器卡片 -->
+      <div class="filter-card">
+        <!-- 级别选择标签 -->
+        <div class="level-tabs" id="level-tabs">
+          <button class="level-tab active" data-level="all">全部级别</button>
+          <button class="level-tab" data-level="1">Level 1 (第一级)</button>
+          <button class="level-tab disabled" title="后续级别将陆续收录" disabled>Level 2 (即将上线)</button>
+        </div>
+
+        <!-- 搜索与排序行 -->
+        <div class="search-sort-bar">
+          <div class="search-input-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="input-search" placeholder="输入英文名(如 duck, robot) 或中文..." autocomplete="off">
+            <button class="btn-clear-search" id="btn-clear-search" title="清空搜索" style="display: none;">✕</button>
+          </div>
+
+          <div class="sort-wrapper">
+            <label for="select-sort" class="sort-label">排序:</label>
+            <select id="select-sort" class="sort-select">
+              <option value="order-asc">序号升序 (16 → 33)</option>
+              <option value="order-desc">序号降序 (33 → 16)</option>
+              <option value="title-asc">英文名 A → Z</option>
+              <option value="title-desc">英文名 Z → A</option>
+              <option value="sentences-asc">篇幅从短到长</option>
+              <option value="sentences-desc">篇幅从长到短</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 统计、全套导出按钮与快捷标签 -->
+        <div class="filter-status-row">
+          <div class="filter-status-left">
+            <span class="stats-text" id="stats-text">正在加载绘本库...</span>
+            <button class="btn-export-all-pdf" id="btn-export-all-pdf" title="一键导出第一级别全套18本绘本PDF手册">
+              <span>📑 导出 Level 1 全套 PDF</span>
+            </button>
+          </div>
+          <div class="quick-keywords" id="quick-keywords">
+            <span class="kw-tag" data-kw="duck">🦆 鸭子</span>
+            <span class="kw-tag" data-kw="robot">🤖 机器人</span>
+            <span class="kw-tag" data-kw="ice cream">🍦 冰淇淋</span>
+            <span class="kw-tag" data-kw="dog">🐕 狗狗</span>
+            <span class="kw-tag" data-kw="skip">🏃 跳绳</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 绘本书籍网格 -->
+      <div class="books-grid" id="books-grid">
+        <!-- 动态生成绘本卡片 -->
+      </div>
+
+      <!-- 搜索空状态 -->
+      <div class="empty-state" id="empty-state" style="display: none;">
+        <span class="empty-icon">🔍</span>
+        <h3>未找到符合条件的绘本</h3>
+        <p>试试其他英文关键词或清除搜索条件</p>
+        <button class="btn-reset-filter" id="btn-reset-filter">重置搜索条件</button>
+      </div>
+    </section>
+
+    <!-- 视图 2：绘本阅读与播放页 -->
+    <section class="view-section" id="view-reader" style="display: none;">
+      <!-- 阅读器顶部导航 -->
+      <div class="reader-navbar">
+        <button class="btn-nav-back" id="btn-reader-back" title="返回书库">
+          <span class="arrow">‹</span> <span>书库</span>
+        </button>
+
+        <div class="reader-book-info">
+          <span class="badge-order" id="reader-book-badge">L1 #16</span>
+          <h2 class="reader-book-title-en" id="reader-book-title-en">Hook a duck</h2>
+          <span class="reader-book-title-cn" id="reader-book-title-cn">钓小鸭子</span>
+        </div>
+
+        <div class="reader-quick-pager">
+          <button class="btn-pager" id="btn-prev-book" title="上一本">‹ 上一本</button>
+          <button class="btn-pager" id="btn-next-book" title="下一本">下一本 ›</button>
+        </div>
+      </div>
+
+      <!-- 工具栏：模式切换、字号调节、整本播放 -->
+      <div class="reader-toolbar">
+        <div class="mode-toggles">
+          <button class="mode-btn active" id="btn-mode-bilingual">📖 中英对照</button>
+          <button class="mode-btn" id="btn-mode-english">🔤 纯英文模式</button>
+        </div>
+
+        <div class="font-size-control">
+          <span class="font-label">字号:</span>
+          <button class="font-btn" data-size="normal">中</button>
+          <button class="font-btn active" data-size="large">大</button>
+          <button class="font-btn" data-size="xlarge">特大</button>
+        </div>
+
+        <div class="toolbar-actions">
+          <button class="btn-secondary-export" id="btn-export-single-pdf" title="导出/打印当前绘本A4高清PDF">
+            <span>🖨️ 导出单本 PDF</span>
+          </button>
+          <button class="btn-primary-play" id="btn-play-whole-book">
+            <span class="play-icon">▶</span>
+            <span>播放整本纯英音频</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 提示语 -->
+      <div class="reader-tip-banner">
+        💡 提示：点击任意句子卡片可单独朗读该句；点击上方大按钮可从头到尾连续听纯英文整本音频。
+      </div>
+
+      <!-- 绘本正文句子流列表 -->
+      <div class="sentences-container font-large" id="sentences-container">
+        <!-- 动态生成句子卡片 -->
+      </div>
+    </section>
+
+    <!-- 视图 3：我的（配置与个人中心） -->
+    <section class="view-section" id="view-profile" style="display: none;">
+      <div class="profile-container">
+        <!-- 1. 账号与安全卡片 -->
+        <div class="profile-card account-summary-card">
+          <div class="account-header">
+            <div class="account-avatar-box" id="profile-current-avatar">🦁</div>
+            <div class="account-meta">
+              <div class="account-name-row">
+                <h3 class="account-nickname" id="profile-nickname-display">Kipper</h3>
+                <span class="badge-account-tag" id="profile-role-badge">专属受控账号</span>
+              </div>
+              <p class="account-username-text">登录账号：<strong id="profile-account-username">oxford</strong> (<span id="profile-account-role-desc">体验权限</span>)</p>
+            </div>
+          </div>
+          <div class="account-actions">
+            <button class="btn-action-small" id="btn-open-change-pwd" style="display: none;">🔑 修改密码</button>
+            <button class="btn-action-small btn-danger" id="btn-do-logout">🚪 退出登录</button>
+          </div>
+        </div>
+
+        <!-- 2. 小读者档案配置卡片 -->
+        <div class="profile-card">
+          <h4 class="card-section-title">🐣 小读者设置</h4>
+          <div class="setting-item">
+            <label class="setting-label">小读者称呼 / 英文名：</label>
+            <div class="nickname-input-group">
+              <input type="text" id="input-reader-nickname" class="profile-input" placeholder="如 Lucas, Kipper..." value="Kipper">
+              <button class="btn-save-nickname" id="btn-save-nickname">保存称谓</button>
+            </div>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">选择卡通头像：</label>
+            <div class="avatar-picker" id="avatar-picker">
+              <span class="avatar-opt active" data-avatar="🦁">🦁</span>
+              <span class="avatar-opt" data-avatar="🐼">🐼</span>
+              <span class="avatar-opt" data-avatar="🐨">🐨</span>
+              <span class="avatar-opt" data-avatar="🐰">🐰</span>
+              <span class="avatar-opt" data-avatar="🐶">🐶</span>
+              <span class="avatar-opt" data-avatar="🦊">🦊</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. 纯英文朗读与发音全局配置卡片 -->
+        <div class="profile-card">
+          <h4 class="card-section-title">🎙️ 纯英文朗读与点读配置</h4>
+          <div class="setting-item">
+            <label class="setting-label">发音首选口音：</label>
+            <div class="segmented-control" id="profile-voice-control">
+              <button class="seg-btn active" data-voice="en-GB">🇬🇧 英式纯英 (正统牛津音)</button>
+              <button class="seg-btn" data-voice="en-US">🇺🇸 美式纯英 (美语自然音)</button>
+            </div>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">默认朗读倍速：</label>
+            <div class="segmented-control" id="profile-rate-control">
+              <button class="seg-btn" data-rate="0.8">0.8x 慢速</button>
+              <button class="seg-btn active" data-rate="1.0">1.0x 标准</button>
+              <button class="seg-btn" data-rate="1.2">1.2x 快速</button>
+              <button class="seg-btn" data-rate="2.0">2.0x 极速</button>
+            </div>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">句子跟读停顿间隔：</label>
+            <div class="segmented-control" id="profile-pause-control">
+              <button class="seg-btn" data-pause="300">0.3s 紧凑</button>
+              <button class="seg-btn active" data-pause="600">0.6s 舒适伴读</button>
+              <button class="seg-btn" data-pause="1000">1.0s 充分跟读</button>
+            </div>
+            <span class="setting-desc">每读完一句英文后，系统自动等待该时长再朗读下一句，为孩子预留大声复述跟读的时间。</span>
+          </div>
+
+          <!-- 实时试听按钮 -->
+          <div class="test-voice-box">
+            <button class="btn-test-voice" id="btn-test-voice">
+              <span class="icon">🔊</span>
+              <span>试听当前发音与倍速效果</span>
+            </button>
+            <span class="test-sample-text">例句: "Come on, let's read Oxford Reading Tree!"</span>
+          </div>
+        </div>
+
+        <!-- 4. 阅读习惯偏好 -->
+        <div class="profile-card">
+          <h4 class="card-section-title">📖 阅读默认习惯</h4>
+          <div class="setting-item">
+            <label class="setting-label">默认进入模式：</label>
+            <div class="segmented-control" id="profile-mode-control">
+              <button class="seg-btn active" data-mode="bilingual">📖 中英双语对照版</button>
+              <button class="seg-btn" data-mode="english">🔤 纯英文沉浸版</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. 关于与专属说明 -->
+        <div class="profile-card profile-about-card">
+          <div class="about-item">
+            <span>应用版本</span>
+            <span>v1.2.0 · 本地专属离线版</span>
+          </div>
+          <div class="about-item">
+            <span>绘本收录</span>
+            <span>Level 1 (第 1 级 · 16~33 号共 18 本)</span>
+          </div>
+          <div class="about-item">
+            <span>权限政策</span>
+            <span style="color:#D32F2F; font-weight:700;">私人受限访问 · 禁止公开注册</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 底部常驻双 Tab 导航栏 (Bottom Tab Bar) -->
+  <nav class="bottom-tabbar" id="bottom-tabbar">
+    <button class="tab-item active" id="tab-btn-home" data-tab="home">
+      <span class="tab-icon">📚</span>
+      <span class="tab-label">首页书库</span>
+    </button>
+    <button class="tab-item" id="tab-btn-mine" data-tab="mine">
+      <span class="tab-icon">👤</span>
+      <span class="tab-label">我的</span>
+    </button>
+  </nav>
+
+  <!-- 修改密码弹窗 -->
+  <div class="modal-overlay" id="modal-change-pwd" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">🔑 修改登录密码</h3>
+        <button class="btn-modal-close" id="btn-close-pwd-modal" title="关闭">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-item">
+          <label>当前旧密码</label>
+          <input type="password" id="input-old-pwd" class="profile-input" placeholder="请输入当前密码">
+        </div>
+        <div class="form-item">
+          <label>设置新密码</label>
+          <input type="password" id="input-new-pwd" class="profile-input" placeholder="请输入新密码">
+        </div>
+        <div class="form-item">
+          <label>再次输入新密码</label>
+          <input type="password" id="input-confirm-pwd" class="profile-input" placeholder="请再次输入新密码">
+        </div>
+        <div class="login-error-tip" id="pwd-error-tip" style="display: none;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal-cancel" id="btn-cancel-change-pwd">取消</button>
+        <button class="btn-modal-confirm" id="btn-confirm-change-pwd">确认修改</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 导出 PDF 配置选项模态弹窗 (Modal) -->
+  <div class="modal-overlay" id="modal-export" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-export-title">📑 导出牛津树 PDF</h3>
+        <button class="btn-modal-close" id="btn-modal-close" title="关闭">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc" id="modal-export-desc">
+          系统将自动生成适合 A4 纸张打印的高清版面，支持每本独立分页、大字号排版与儿童伴读打卡栏。
+        </p>
+
+        <div class="export-options-group">
+          <label class="option-title">选择排版版本：</label>
+          <div class="option-radios">
+            <label class="radio-label">
+              <input type="radio" name="export-lang-version" value="bilingual" checked>
+              <div class="radio-info">
+                <span class="radio-name">📖 中英双语对照版 (推荐)</span>
+                <span class="radio-tip">大字号英文 + 浅色中文辅助，适合家长辅导或刚起步对照学习</span>
+              </div>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="export-lang-version" value="english">
+              <div class="radio-info">
+                <span class="radio-name">🔤 纯英文启蒙版 (无中文)</span>
+                <span class="radio-tip">完全隐藏中文译文，专供孩子纸质认读、拼读磨耳朵与默读打卡</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="export-print-tips">
+          💡 <strong>打印小贴士</strong>：点击“立即生成并导出”后，系统将调起浏览器打印窗口。在目标设备中选择<strong>“另存为 PDF”</strong>即可保存为文件；亦可直接无线发送至家庭打印机打印。
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal-cancel" id="btn-modal-cancel">取消</button>
+        <button class="btn-modal-confirm" id="btn-modal-confirm">立即生成并导出 PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- A4 专属打印区域 (屏幕正常浏览时隐藏，打印时展示) -->
+  <div id="print-area" class="print-area"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js?v=1789704236091"></script>
+</body>
+</html>
