@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF8A65"/>
+      <stop offset="100%" stop-color="#E64A19"/>
+    </linearGradient>
+    <linearGradient id="treeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#81C784"/>
+      <stop offset="100%" stop-color="#2E7D32"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <!-- 背景大圆角矩形 -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+
+  <!-- 白色内层圆盘 -->
+  <circle cx="256" cy="245" r="185" fill="#FFFFFF" filter="url(#shadow)"/>
+
+  <!-- 大树图案（代表牛津树） -->
+  <!-- 树干 -->
+  <path d="M236 270 L276 270 L284 360 L228 360 Z" fill="#795548"/>
+  <!-- 树冠底层 -->
+  <path d="M140 270 C140 225 180 205 200 205 C200 175 235 150 256 150 C277 150 312 175 312 205 C332 205 372 225 372 270 C372 310 335 320 300 320 L212 320 C175 320 140 310 140 270 Z" fill="url(#treeGrad)"/>
+  <!-- 树冠顶层高光 -->
+  <circle cx="230" cy="210" r="28" fill="#A5D6A7" opacity="0.6"/>
+  <circle cx="280" cy="220" r="24" fill="#A5D6A7" opacity="0.6"/>
+
+  <!-- 金色小钥匙（牛津树魔法钥匙特征） -->
+  <g transform="translate(256, 385) scale(0.85)" filter="url(#shadow)">
+    <!-- 展开的书本背景 -->
+    <path d="M-110 -20 Q-50 -35 0 -20 Q50 -35 110 -20 L110 35 Q50 20 0 35 Q-50 20 -110 35 Z" fill="#FFF8E1" stroke="#FFA000" stroke-width="4"/>
+    <line x1="0" y1="-20" x2="0" y2="35" stroke="#FFA000" stroke-width="3"/>
+  </g>
+
+  <!-- 底部文字 -->
+  <text x="256" y="475" text-anchor="middle" fill="#FFFFFF" font-family="-apple-system, sans-serif" font-size="34" font-weight="900" letter-spacing="1">OXFORD TREE</text>
+</svg>
